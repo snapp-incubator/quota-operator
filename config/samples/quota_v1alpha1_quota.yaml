@@ -2,6 +2,21 @@ apiVersion: quota.snappcloud.io/v1alpha1
 kind: Quota
 metadata:
   name: quota-sample
+  namespace: yosefpor-test
 spec:
-  # Add fields here
-  foo: bar
+  hard:
+    pods: 10
+    configmaps: 100
+    glusterfs-storage-nocache.storageclass.storage.k8s.io/persistentvolumeclaims: 0
+    glusterfs-storage-nocache.storageclass.storage.k8s.io/requests.storage: 0
+    glusterfs-storage.storageclass.storage.k8s.io/persistentvolumeclaims: 0
+    glusterfs-storage.storageclass.storage.k8s.io/requests.storage: 0
+    limits.memory: 5Gi
+    openshift.io/imagestreams: 100
+    persistentvolumeclaims: 10
+    replicationcontrollers: 500
+    requests.storage: 8Gi
+    resourcequotas: 100
+    secrets: 100
+    services: 100
+    services.loadbalancers: 3
