@@ -24,15 +24,15 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	openshiftquotav1 "github.com/openshift/api/quota/v1"
+	quotav1alpha1 "github.com/snapp-cab/quota-operator/api/v1alpha1"
+	"github.com/snapp-cab/quota-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	quotav1alpha1 "github.com/snapp-cab/quota-operator/api/v1alpha1"
-	"github.com/snapp-cab/quota-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -45,6 +45,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(quotav1alpha1.AddToScheme(scheme))
+	utilruntime.Must(openshiftquotav1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -83,6 +84,10 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Quota")
+		os.Exit(1)
+	}
+	if err = (&quotav1alpha1.Quota{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Quota")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
