@@ -73,7 +73,7 @@ func (r *QuotaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return ctrl.Result{}, err
 	}
 
-	var found *corev1.ResourceQuota
+	found := &corev1.ResourceQuota{}
 	err = r.Get(ctx, types.NamespacedName{Name: quota.Name, Namespace: quota.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new quota

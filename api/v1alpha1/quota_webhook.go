@@ -85,7 +85,6 @@ func (r *Quota) ValidateDelete() error {
 
 // ValidateCreateOrUpdate is the logic for validation of webhook
 func (r *Quota) ValidateCreateOrUpdate() error {
-	quotalog.Info("validate delete", "name", r.Name)
 
 	ns := &corev1.Namespace{}
 	err := C.Get(context.TODO(), types.NamespacedName{Name: r.GetNamespace()}, ns)
