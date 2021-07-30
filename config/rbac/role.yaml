@@ -1,0 +1,34 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - quota.snappcloud.io
+  resources:
+  - quotas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - quota.snappcloud.io
+  resources:
+  - quotas/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - quota.snappcloud.io
+  resources:
+  - quotas/status
+  verbs:
+  - get
+  - patch
+  - update

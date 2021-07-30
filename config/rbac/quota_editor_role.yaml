@@ -1,0 +1,24 @@
+# permissions for end users to edit quotas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: quota-editor-role
+rules:
+- apiGroups:
+  - quota.snappcloud.io
+  resources:
+  - quotas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - quota.snappcloud.io
+  resources:
+  - quotas/status
+  verbs:
+  - get

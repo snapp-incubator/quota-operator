@@ -1,0 +1,20 @@
+# permissions for end users to view quotas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: quota-viewer-role
+rules:
+- apiGroups:
+  - quota.snappcloud.io
+  resources:
+  - quotas
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - quota.snappcloud.io
+  resources:
+  - quotas/status
+  verbs:
+  - get
