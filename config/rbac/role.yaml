@@ -9,7 +9,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - resourcequota
+  - resourcequotas
   verbs:
   - create
   - delete
