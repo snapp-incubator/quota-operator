@@ -27,6 +27,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - quota.openshift.io
+  resources:
+  - clusterresourcequotas
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - quota.snappcloud.io
   resources:
   - quotas
