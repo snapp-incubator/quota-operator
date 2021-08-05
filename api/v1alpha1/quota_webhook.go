@@ -31,7 +31,8 @@ import (
 )
 
 const (
-	teamLabel = "snappcloud.io/team"
+	teamLabel        = "snappcloud.io/team"
+	defaultQuotaName = "default"
 )
 
 var (
@@ -66,26 +67,12 @@ var _ webhook.Validator = &Quota{}
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Quota) ValidateCreate() error {
 	quotalog.Info("validate create", "name", r.Name)
-	return r.ValidateCreateOrUpdate()
+	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *Quota) ValidateUpdate(old runtime.Object) error {
 	quotalog.Info("validate update", "name", r.Name)
-	return r.ValidateCreateOrUpdate()
-}
-
-// ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *Quota) ValidateDelete() error {
-	quotalog.Info("validate delete", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object deletion.
-	return nil
-}
-
-// ValidateCreateOrUpdate is the logic for validation of webhook
-func (r *Quota) ValidateCreateOrUpdate() error {
-
 	ns := &corev1.Namespace{}
 	err := C.Get(context.TODO(), types.NamespacedName{Name: r.GetNamespace()}, ns)
 	if err != nil {
@@ -101,8 +88,18 @@ func (r *Quota) ValidateCreateOrUpdate() error {
 	err = C.Get(context.TODO(), types.NamespacedName{Name: l}, crq)
 	if err != nil {
 		quotalog.Error(err, "error getting clusterResourceQuota", "name", l)
-		return fmt.Errorf("no team quota found. Please request a quota for your team in cloud-support")
+		return fmt.Errorf("no team quota found. please request a quota for your team in cloud-support")
 	}
 
+	return nil
+}
+
+// ValidateDelete implements webhook.Validator so a webhook will be registered for the type
+func (r *Quota) ValidateDelete() error {
+	quotalog.Info("validate delete", "name", r.Name)
+
+	if r.GetName() == defaultQuotaName {
+		return fmt.Errorf("cannot delete default quota, you can only edit it")
+	}
 	return nil
 }
