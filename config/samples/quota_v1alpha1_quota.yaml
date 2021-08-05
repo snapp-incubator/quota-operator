@@ -1,22 +1,33 @@
 apiVersion: quota.snappcloud.io/v1alpha1
 kind: Quota
 metadata:
-  name: quota-sample
-  namespace: yosefpor-test
+  name: default
+  namespace: ${PROJECT_NAME}
 spec:
   hard:
+    ### Protect against DoS
+    resourcequotas: 100
+    count/configmaps: 100
+    count/secrets: 100
+    count/services: 100
+    count/deployments.apps: 100
+    count/statefulsets.apps: 100
+    count/cronjobs.batch: 100
+    count/replicasets.apps: 500
+    count/replicationcontrollers: 500
+    count/jobs.batch: 500
+    ### Charged resources
+    count/services.loadbalancers: 3
     pods: 10
-    configmaps: 100
+    count/persistentvolumeclaims: 10
+    openshift.io/imagestreams: 100
+    limits.memory: 5Gi
+    requests.memory: 5Gi
+    requests.storage: 8Gi
+    requests.ephemeral-storage: 5Gi
+    limits.ephemeral-storage: 5Gi
+    ### prevent users from creating these resources
     glusterfs-storage-nocache.storageclass.storage.k8s.io/persistentvolumeclaims: 0
     glusterfs-storage-nocache.storageclass.storage.k8s.io/requests.storage: 0
     glusterfs-storage.storageclass.storage.k8s.io/persistentvolumeclaims: 0
     glusterfs-storage.storageclass.storage.k8s.io/requests.storage: 0
-    limits.memory: 5Gi
-    openshift.io/imagestreams: 100
-    persistentvolumeclaims: 10
-    replicationcontrollers: 500
-    requests.storage: 8Gi
-    resourcequotas: 100
-    secrets: 100
-    services: 100
-    services.loadbalancers: 3
