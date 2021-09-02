@@ -97,8 +97,21 @@ func (r *Quota) ValidateUpdate(old runtime.Object) error {
 func (r *Quota) ValidateDelete() error {
 	quotalog.Info("validate delete", "name", r.Name)
 
-	if r.GetName() == defaultQuotaName {
-		return fmt.Errorf("cannot delete default quota, you can only edit it")
+	if r.GetName() != defaultQuotaName {
+		return nil
 	}
-	return nil
+
+	ns := &corev1.Namespace{}
+	err := C.Get(context.TODO(), types.NamespacedName{Name: r.GetNamespace()}, ns)
+	if err != nil {
+		quotalog.Error(err, "error getting namespace", "name", r.GetNamespace())
+		return err
+	}
+
+	if ns.GetDeletionTimestamp() != nil {
+		quotalog.Info("allowing default quota deletion as namespace is terminating", "namespace", r.GetNamespace())
+		return nil
+	}
+	return fmt.Errorf("cannot delete default quota, you can only edit it")
+
 }
