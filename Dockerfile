@@ -1,10 +1,7 @@
 # Build the manager binary
-FROM golang:1.16 as builder
+FROM golang:1.17.5 as builder
 
 WORKDIR /workspace
-ENV http_proxy=http://snapp-mirror:TmfBZb68qjGGF6feBdqX@mirror-fra-1.snappcloud.io:30128
-ENV https_proxy=http://snapp-mirror:TmfBZb68qjGGF6feBdqX@mirror-fra-1.snappcloud.io:30128
-ENV no_proxy=localhost,127.0.0.1,gitlab.snapp.ir,mirror-teh-1.snappcloud.io,mirror-fra-1.snappcloud.io
 
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -19,10 +16,8 @@ COPY api/ api/
 COPY controllers/ controllers/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM docker.io/library/alpine:latest
 WORKDIR /
 COPY --from=builder /workspace/manager .
