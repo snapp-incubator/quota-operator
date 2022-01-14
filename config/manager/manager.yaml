@@ -29,7 +29,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: registry.okd4.teh-1.snappcloud.io/public-reg/quota-operator:latest
+        image: ghcr.io/snapp-incubator/quota-operator:main
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
