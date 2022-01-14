@@ -130,6 +130,9 @@ func (r *QuotaReconciler) corequotaFromQuota(q *quotav1alpha1.Quota) (*corev1.Re
 		Spec: q.Spec,
 	}
 	// Set Route instance as the owner and controller
-	ctrl.SetControllerReference(q, corequota, r.Scheme)
+	err := ctrl.SetControllerReference(q, corequota, r.Scheme)
+	if err != nil {
+		return &corev1.ResourceQuota{}, err
+	}
 	return corequota, nil
 }
