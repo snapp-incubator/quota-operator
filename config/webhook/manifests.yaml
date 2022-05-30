@@ -47,14 +47,13 @@ webhooks:
   name: vquota.kb.io
   rules:
   - apiGroups:
-    - ""
+    - quota.snappcloud.io
     apiVersions:
-    - v1
+    - v1alpha1
     operations:
     - CREATE
     - UPDATE
     - DELETE
-    - PATCH
     resources:
-    - resourcequotas
+    - quotas
   sideEffects: None
