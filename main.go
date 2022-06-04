@@ -17,11 +17,15 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
+	"net/http"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	corev1 "k8s.io/api/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	openshiftquotav1 "github.com/openshift/api/quota/v1"
@@ -31,8 +35,11 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -47,6 +54,49 @@ func init() {
 	utilruntime.Must(quotav1alpha1.AddToScheme(scheme))
 	utilruntime.Must(openshiftquotav1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
+}
+
+type resourceQuotaValidator struct {
+	Client  client.Client
+	decoder *admission.Decoder
+}
+
+const (
+	teamLabel        = "snappcloud.io/team"
+	defaultQuotaName = "default"
+)
+
+func (v *resourceQuotaValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
+	ns := &corev1.Namespace{}
+	resourcequota := &corev1.ResourceQuota{}
+
+	l, ok := ns.GetLabels()[teamLabel]
+	fmt.Printf("%s", l)
+	if !ok {
+		return admission.Denied("no team found for the project. please join your project to a team")
+	}
+
+	err := v.decoder.Decode(req, resourcequota)
+	if err != nil {
+		return admission.Errored(http.StatusBadRequest, err)
+	}
+
+	key := "example-mutating-admission-webhook"
+	anno, found := resourcequota.Annotations[key]
+	if !found {
+		return admission.Denied(fmt.Sprintf("missing annotation %s", key))
+	}
+	if anno != "foo" {
+		return admission.Denied(fmt.Sprintf("annotation %s did not have value %q", key, "foo"))
+	}
+
+	return admission.Allowed("")
+}
+
+// InjectDecoder injects the decoder.
+func (v *resourceQuotaValidator) InjectDecoder(d *admission.Decoder) error {
+	v.decoder = d
+	return nil
 }
 
 func main() {
@@ -91,6 +141,9 @@ func main() {
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
+	hookServer := mgr.GetWebhookServer()
+
+	hookServer.Register("/validate-v1-resource-quota", &webhook.Admission{Handler: &resourceQuotaValidator{Client: mgr.GetClient()}})
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
