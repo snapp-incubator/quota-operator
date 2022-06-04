@@ -57,3 +57,26 @@ webhooks:
     resources:
     - quotas
   sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-v1-resource-quota
+  failurePolicy: Fail
+  name: vresourcequota.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    - PATCH
+    resources:
+    - resourcequotas
+  sideEffects: None
