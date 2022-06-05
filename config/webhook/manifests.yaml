@@ -76,7 +76,6 @@ webhooks:
     - CREATE
     - UPDATE
     - DELETE
-    - PATCH
     resources:
     - resourcequotas
   sideEffects: None
