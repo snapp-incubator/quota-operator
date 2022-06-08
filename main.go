@@ -26,12 +26,14 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/rbac/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	openshiftquotav1 "github.com/openshift/api/quota/v1"
 	quotav1alpha1 "github.com/snapp-cab/quota-operator/api/v1alpha1"
 	"github.com/snapp-cab/quota-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -57,46 +59,63 @@ func init() {
 }
 
 type resourceQuotaValidator struct {
-	Client  client.Client
-	decoder *admission.Decoder
+	Client client.Client
 }
 
 const (
-	teamLabel        = "snappcloud.io/team"
-	defaultQuotaName = "default"
+	teamLabel = "snappcloud.io/team"
 )
 
 func (v *resourceQuotaValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
-	ns := &corev1.Namespace{}
-	resourcequota := &corev1.ResourceQuota{}
 
-	l, ok := ns.GetLabels()[teamLabel]
-	fmt.Printf("%s", l)
-	if !ok {
-		return admission.Denied("no team found for the project. please join your project to a team")
+	if req.Operation == "UPDATE" {
+
+		ns := &corev1.Namespace{}
+		err := v.Client.Get(context.TODO(), types.NamespacedName{Name: req.Namespace}, ns)
+		if err != nil {
+			setupLog.Error(err, "error getting namespace", "name", req.Namespace)
+			return admission.Denied("error on getting namespace")
+		}
+
+		l, ok := ns.GetLabels()[teamLabel]
+		if !ok {
+			return admission.Denied("no team found for the project. please join your project to a team")
+		}
+
+		crq := &openshiftquotav1.ClusterResourceQuota{}
+		err = v.Client.Get(context.TODO(), types.NamespacedName{Name: l}, crq)
+		if err != nil {
+			setupLog.Error(err, "error getting clusterResourceQuota", "name", l)
+			return admission.Denied("no team quota found. please request a quota for your team in cloud-support")
+		}
+
+		roleBinding := &v1.RoleBinding{}
+		err = v.Client.Get(context.TODO(), types.NamespacedName{Name: "admin", Namespace: req.Namespace}, roleBinding)
+		if err != nil {
+			setupLog.Error(err, "unable to get admin rolebinding")
+			return admission.Denied("Error on getting rolebinding list")
+		} else {
+			setupLog.Info("rolebinding", "rolebinding", roleBinding)
+		}
+
+		roleBindingSubjects := roleBinding.Subjects
+		for _, subject := range roleBindingSubjects {
+			setupLog.Info("subject", "subject", subject.Name)
+			if req.UserInfo.Username == subject.Name {
+				setupLog.Info("user is admin", "user", req.UserInfo.Username)
+				return admission.Allowed("user is admin")
+			}
+		}
+
+		return admission.Denied("Akharin Denied")
+	} else if req.Operation == "CREATE" {
+		// maybe need some validating rules for creating??
+		return admission.Allowed("CREATE")
+	} else if req.Operation == "DELETE" {
+		return admission.Denied("FELAN DELETE NADARIM :) ")
+	} else {
+		return admission.Denied("Akharinnnnnn")
 	}
-
-	err := v.decoder.Decode(req, resourcequota)
-	if err != nil {
-		return admission.Errored(http.StatusBadRequest, err)
-	}
-
-	key := "example-mutating-admission-webhook"
-	anno, found := resourcequota.Annotations[key]
-	if !found {
-		return admission.Denied(fmt.Sprintf("missing annotation %s", key))
-	}
-	if anno != "foo" {
-		return admission.Denied(fmt.Sprintf("annotation %s did not have value %q", key, "foo"))
-	}
-
-	return admission.Allowed("")
-}
-
-// InjectDecoder injects the decoder.
-func (v *resourceQuotaValidator) InjectDecoder(d *admission.Decoder) error {
-	v.decoder = d
-	return nil
 }
 
 func main() {
@@ -129,17 +148,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.QuotaReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Quota")
-		os.Exit(1)
-	}
-	if err = (&quotav1alpha1.Quota{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Quota")
-		os.Exit(1)
-	}
+	// if err = (&controllers.QuotaReconciler{
+	// 	Client: mgr.GetClient(),
+	// 	Scheme: mgr.GetScheme(),
+	// }).SetupWithManager(mgr); err != nil {
+	// 	setupLog.Error(err, "unable to create controller", "controller", "Quota")
+	// 	os.Exit(1)
+	// }
+	// if err = (&quotav1alpha1.Quota{}).SetupWebhookWithManager(mgr); err != nil {
+	// 	setupLog.Error(err, "unable to create webhook", "webhook", "Quota")
+	// 	os.Exit(1)
+	// }
 	//+kubebuilder:scaffold:builder
 	hookServer := mgr.GetWebhookServer()
 
