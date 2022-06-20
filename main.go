@@ -17,27 +17,23 @@ limitations under the License.
 package main
 
 import (
-	"context"
 	"flag"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
-	corev1 "k8s.io/api/core/v1"
+
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	openshiftquotav1 "github.com/openshift/api/quota/v1"
 	quotav1alpha1 "github.com/snapp-cab/quota-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -52,43 +48,6 @@ func init() {
 	utilruntime.Must(quotav1alpha1.AddToScheme(scheme))
 	utilruntime.Must(openshiftquotav1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
-}
-
-type resourceQuotaValidator struct {
-	Client client.Client
-}
-
-const (
-	teamLabel = "snappcloud.io/team"
-)
-
-func (v *resourceQuotaValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
-	if req.Operation == "UPDATE" {
-		ns := &corev1.Namespace{}
-		err := v.Client.Get(context.TODO(), types.NamespacedName{Name: req.Namespace}, ns)
-		if err != nil {
-			setupLog.Error(err, "error getting namespace", "name", req.Namespace)
-			return admission.Denied("error on getting namespace")
-		}
-		l, ok := ns.GetLabels()[teamLabel]
-		if !ok {
-			return admission.Denied("no team found for the project. please join your project to a team")
-		}
-		crq := &openshiftquotav1.ClusterResourceQuota{}
-		err = v.Client.Get(context.TODO(), types.NamespacedName{Name: l}, crq)
-		if err != nil {
-			setupLog.Error(err, "error getting clusterResourceQuota", "name", l)
-			return admission.Denied("no team quota found. please request a quota for your team in cloud-support")
-		}
-		return admission.Allowed("updating resourcequota")
-	} else if req.Operation == "DELETE" {
-		if req.Name == "default" {
-			return admission.Denied("default resourcequota cannot be deleted")
-		}
-		return admission.Allowed("DELETE")
-	} else {
-		return admission.Allowed("Allowed")
-	}
 }
 
 func main() {
