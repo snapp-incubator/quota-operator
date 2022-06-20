@@ -1,4 +1,4 @@
-package main
+package custom_webhook
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 //+kubebuilder:webhook:path=/validate-v1-resource-quota,mutating=false,failurePolicy=fail,sideEffects=None,groups="",resources=resourcequotas,verbs=create;update;delete,versions=v1,name=vresourcequota.kb.io,admissionReviewVersions={v1,v1beta1}
 //+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=resourcequotas,verbs=get;watch;list
 
-type resourceQuotaValidator struct {
+type ResourceQuotaValidator struct {
 	Client client.Client
 }
 
@@ -21,12 +22,13 @@ const (
 	teamLabel = "snappcloud.io/team"
 )
 
-func (v *resourceQuotaValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
+	log := log.FromContext(ctx)
 	if req.Operation == "UPDATE" {
 		ns := &corev1.Namespace{}
 		err := v.Client.Get(context.TODO(), types.NamespacedName{Name: req.Namespace}, ns)
 		if err != nil {
-			setupLog.Error(err, "error getting namespace", "name", req.Namespace)
+			log.Error(err, "error getting namespace", "name", req.Namespace)
 			return admission.Denied("error on getting namespace")
 		}
 		l, ok := ns.GetLabels()[teamLabel]
@@ -36,7 +38,7 @@ func (v *resourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 		crq := &openshiftquotav1.ClusterResourceQuota{}
 		err = v.Client.Get(context.TODO(), types.NamespacedName{Name: l}, crq)
 		if err != nil {
-			setupLog.Error(err, "error getting clusterResourceQuota", "name", l)
+			log.Error(err, "error getting clusterResourceQuota", "name", l)
 			return admission.Denied("no team quota found. please request a quota for your team in cloud-support")
 		}
 		return admission.Allowed("updating resourcequota")

@@ -26,6 +26,7 @@ import (
 
 	openshiftquotav1 "github.com/openshift/api/quota/v1"
 	quotav1alpha1 "github.com/snapp-cab/quota-operator/api/v1alpha1"
+	customwebhook "github.com/snapp-cab/quota-operator/custom_webhooks"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -96,7 +97,7 @@ func main() {
 
 	//+kubebuilder:scaffold:builder
 	hookServer := mgr.GetWebhookServer()
-	hookServer.Register("/validate-v1-resource-quota", &webhook.Admission{Handler: &resourceQuotaValidator{Client: mgr.GetClient()}})
+	hookServer.Register("/validate-v1-resource-quota", &webhook.Admission{Handler: &customwebhook.ResourceQuotaValidator{Client: mgr.GetClient()}})
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
