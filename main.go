@@ -121,6 +121,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	// we don't need to create reconciler or old webhooks for now.
+	////////////////////////////////
 	// if err = (&controllers.QuotaReconciler{
 	// 	Client: mgr.GetClient(),
 	// 	Scheme: mgr.GetScheme(),
@@ -132,9 +134,10 @@ func main() {
 	// 	setupLog.Error(err, "unable to create webhook", "webhook", "Quota")
 	// 	os.Exit(1)
 	// }
+	/////////////////////////////
+
 	//+kubebuilder:scaffold:builder
 	hookServer := mgr.GetWebhookServer()
-
 	hookServer.Register("/validate-v1-resource-quota", &webhook.Admission{Handler: &resourceQuotaValidator{Client: mgr.GetClient()}})
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
