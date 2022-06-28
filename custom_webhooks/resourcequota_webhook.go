@@ -37,7 +37,7 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
         }
         if l,ok := ns.GetLabels()[enforceLabel]; ok{
             if l == "false" || l == ""{
-                return admission.Allowed("ignoring resourcequota")
+                return admission.Denied("enforce label is not set to true")
             }
         }else{
             return admission.Denied("no enforce label found for the project")
