@@ -48,8 +48,6 @@ func (r *Quota) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/mutate-quota-snappcloud-io-v1alpha1-quota,mutating=true,failurePolicy=fail,sideEffects=None,groups=quota.snappcloud.io,resources=quotas,verbs=create;update,versions=v1alpha1,name=mquota.kb.io,admissionReviewVersions={v1,v1beta1}
-
 var _ webhook.Defaulter = &Quota{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
@@ -58,8 +56,6 @@ func (r *Quota) Default() {
 
 	// TODO(user): fill in your defaulting logic.
 }
-
-//+kubebuilder:webhook:path=/validate-quota-snappcloud-io-v1alpha1-quota,mutating=false,failurePolicy=fail,sideEffects=None,groups=quota.snappcloud.io,resources=quotas,verbs=create;update;delete,versions=v1alpha1,name=vquota.kb.io,admissionReviewVersions={v1,v1beta1}
 
 var _ webhook.Validator = &Quota{}
 
