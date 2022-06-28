@@ -35,7 +35,6 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
         if !ok {
             return admission.Denied("no team found for the project. please join your project to a team")
         }
-
         if l,ok := ns.GetLabels()[enforceLabel], ok{
             if l == "false" || l == ""{
                 return admission.Allowed("ignoring resourcequota")
@@ -43,7 +42,6 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
         }else{
             return admission.Denied("no enforce label found for the project")
         }
-
         crq := &openshiftquotav1.ClusterResourceQuota{}
         err = v.Client.Get(context.TODO(), types.NamespacedName{Name: l}, crq)
         if err != nil {
