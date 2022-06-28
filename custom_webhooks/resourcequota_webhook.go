@@ -35,7 +35,7 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
         if !ok {
             return admission.Denied("no team found for the project. please join your project to a team")
         }
-        if l,ok := ns.GetLabels()[enforceLabel], ok{
+        if l,ok := ns.GetLabels()[enforceLabel]; ok{
             if l == "false" || l == ""{
                 return admission.Allowed("ignoring resourcequota")
             }
