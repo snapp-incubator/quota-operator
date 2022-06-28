@@ -34,7 +34,7 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 		if l, ok := ns.GetLabels()[enforceLabel]; ok {
 			if l == "true" {
 				return admission.Allowed("updating resourcequota")
-			} else if l == "false" || l == "" {
+			} else {
 				l, ok := ns.GetLabels()[teamLabel]
 				if !ok {
 					return admission.Denied("no team found for the project. please join your project to a team")
@@ -46,9 +46,9 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 					return admission.Denied("no team quota found. please request a quota for your team in cloud-support")
 				}
 				return admission.Allowed("updating resourcequota")
-			} else {
-				return admission.Denied("no enforce label found for the project")
 			}
+		} else {
+			return admission.Denied("no enforce label found for the project")
 		}
 	} else if req.Operation == "DELETE" {
 		if req.Name == "default" {
