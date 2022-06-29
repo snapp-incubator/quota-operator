@@ -34,21 +34,19 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 		if l, ok := ns.GetLabels()[enforceLabel]; ok {
 			if l == "true" {
 				return admission.Allowed("updating resourcequota")
-			} else {
-				l, ok := ns.GetLabels()[teamLabel]
-				if !ok {
-					return admission.Denied("no team found for the project. please join your project to a team")
-				}
-				crq := &openshiftquotav1.ClusterResourceQuota{}
-				err = v.Client.Get(context.TODO(), types.NamespacedName{Name: l}, crq)
-				if err != nil {
-					log.Error(err, "error getting clusterResourceQuota", "name", l)
-					return admission.Denied("no team quota found. please request a quota for your team in cloud-support")
-				}
-				return admission.Allowed("updating resourcequota")
 			}
 		} else {
-			return admission.Denied("no enforce label found for the project")
+			l, ok := ns.GetLabels()[teamLabel]
+			if !ok {
+				return admission.Denied("no team found for the project. please join your project to a team")
+			}
+			crq := &openshiftquotav1.ClusterResourceQuota{}
+			err = v.Client.Get(context.TODO(), types.NamespacedName{Name: l}, crq)
+			if err != nil {
+				log.Error(err, "error getting clusterResourceQuota", "name", l)
+				return admission.Denied("no team quota found. please request a quota for your team in cloud-support")
+			}
+			return admission.Allowed("updating resourcequota")
 		}
 	} else if req.Operation == "DELETE" {
 		if req.Name == "default" {
