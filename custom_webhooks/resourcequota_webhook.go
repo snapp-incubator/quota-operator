@@ -34,8 +34,9 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 		if l, ok := ns.GetLabels()[enforceLabel]; ok {
 			if l == "true" {
 				return admission.Allowed("updating resourcequota")
+			} else {
+				return admission.Denied("enforcelabel is false or empty")
 			}
-			return admission.Denied("enforcelabel is false or empty")
 		} else {
 			l, ok := ns.GetLabels()[teamLabel]
 			if !ok {
