@@ -25,7 +25,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	openshiftquotav1 "github.com/openshift/api/quota/v1"
-	quotav1alpha1 "github.com/snapp-cab/quota-operator/api/v1alpha1"
 	customwebhook "github.com/snapp-cab/quota-operator/custom_webhooks"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -45,7 +44,6 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(quotav1alpha1.AddToScheme(scheme))
 	utilruntime.Must(openshiftquotav1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
@@ -79,21 +77,6 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-
-	// we don't need to create reconciler or old webhooks for now.
-	////////////////////////////////
-	// if err = (&controllers.QuotaReconciler{
-	// 	Client: mgr.GetClient(),
-	// 	Scheme: mgr.GetScheme(),
-	// }).SetupWithManager(mgr); err != nil {
-	// 	setupLog.Error(err, "unable to create controller", "controller", "Quota")
-	// 	os.Exit(1)
-	// }
-	// if err = (&quotav1alpha1.Quota{}).SetupWebhookWithManager(mgr); err != nil {
-	// 	setupLog.Error(err, "unable to create webhook", "webhook", "Quota")
-	// 	os.Exit(1)
-	// }
-	/////////////////////////////
 
 	//+kubebuilder:scaffold:builder
 	hookServer := mgr.GetWebhookServer()
