@@ -3,9 +3,11 @@ module github.com/snapp-cab/quota-operator
 go 1.16
 
 require (
+	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/openshift/api v0.0.0-20210521075222-e273a339932a
-	k8s.io/api v0.25.0
-	k8s.io/apimachinery v0.25.0
-	k8s.io/client-go v0.25.0
-	sigs.k8s.io/controller-runtime v0.13.0
+	k8s.io/api v0.26.0
+	k8s.io/apimachinery v0.26.0
+	k8s.io/client-go v0.26.0
+	sigs.k8s.io/controller-runtime v0.14.1
 )
