@@ -3,9 +3,13 @@ updates:
   - package-ecosystem: gomod
     directory: "/"
     schedule:
-      interval: monthly
+      interval: daily
     labels:
       - dependencies
+    groups:
+       dev-dependencies:
+          patterns:
+            - "*"  
 
   - package-ecosystem: "docker"
     directory: "/"
