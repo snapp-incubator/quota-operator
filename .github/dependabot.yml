@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: gomod
     directory: "/"
     schedule:
-      interval: daily
+      interval: monthly
     labels:
       - dependencies
     groups:
@@ -17,3 +17,7 @@ updates:
       interval: "monthly"
     labels:
       - dependencies
+    groups:
+       docker-dependencies:
+          patterns:
+            - "*"  
