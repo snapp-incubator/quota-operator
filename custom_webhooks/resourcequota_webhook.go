@@ -18,19 +18,20 @@ type ResourceQuotaValidator struct {
 }
 
 const (
-	teamLabel    = "snappcloud.io/team"
-	enforceLabel = "quota.snappcloud.io/enforce"
+	teamLabel          = "snappcloud.io/team"
+	enforceLabel       = "quota.snappcloud.io/enforce"
+	snappcloudTeamName = "snappcloud"
 )
 
 func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	log := log.FromContext(ctx)
+	ns := &corev1.Namespace{}
+	err := v.Client.Get(context.TODO(), types.NamespacedName{Name: req.Namespace}, ns)
+	if err != nil {
+		log.Error(err, "error getting namespace", "name", req.Namespace)
+		return admission.Denied("error on getting namespace")
+	}
 	if req.Operation == "UPDATE" {
-		ns := &corev1.Namespace{}
-		err := v.Client.Get(context.TODO(), types.NamespacedName{Name: req.Namespace}, ns)
-		if err != nil {
-			log.Error(err, "error getting namespace", "name", req.Namespace)
-			return admission.Denied("error on getting namespace")
-		}
 		if l, ok := ns.GetLabels()[enforceLabel]; ok {
 			if l == "true" {
 				return admission.Allowed("updating resourcequota")
@@ -51,7 +52,11 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 			return admission.Allowed("updating resourcequota")
 		}
 	} else if req.Operation == "DELETE" {
-		if req.Name == "default" {
+		teamName, ok := ns.GetLabels()[teamLabel]
+		if !ok {
+			return admission.Denied("no team found for the project. please join your project to a team")
+		}
+		if req.Name == "default" && teamName != snappcloudTeamName {
 			return admission.Denied("default resourcequota cannot be deleted")
 		}
 		return admission.Allowed("DELETE")
