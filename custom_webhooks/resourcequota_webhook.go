@@ -52,11 +52,13 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 			return admission.Allowed("updating resourcequota")
 		}
 	} else if req.Operation == "DELETE" {
-		teamName, ok := ns.GetLabels()[teamLabel]
-		if !ok {
-			return admission.Denied("no team found for the project. please join your project to a team")
-		}
-		if req.Name == "default" && teamName != snappcloudTeamName {
+		if req.Name == "default" {
+			teamName, ok := ns.GetLabels()[teamLabel]
+			if ok {
+				if teamName == snappcloudTeamName {
+					return admission.Allowed("DELETE")
+				}
+			}
 			return admission.Denied("default resourcequota cannot be deleted")
 		}
 		return admission.Allowed("DELETE")
