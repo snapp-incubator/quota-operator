@@ -54,7 +54,8 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 	} else if req.Operation == "DELETE" {
 		teamName, ok := ns.GetLabels()[teamLabel]
 		if !ok {
-			return admission.Denied("no team found for the project. please join your project to a team")
+			// It's OK to delete namespaces having no team.
+			return admission.Allowed("DELETE")
 		}
 		if req.Name == "default" && teamName != snappcloudTeamName {
 			return admission.Denied("default resourcequota cannot be deleted")
