@@ -31,7 +31,8 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 		log.Error(err, "error getting namespace", "name", req.Namespace)
 		return admission.Denied("error on getting namespace")
 	}
-	if req.Operation == "UPDATE" {
+	switch req.Operation {
+	case "UPDATE":
 		if l, ok := ns.GetLabels()[enforceLabel]; ok {
 			if l == "true" {
 				return admission.Allowed("updating resourcequota")
@@ -51,7 +52,7 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 			}
 			return admission.Allowed("updating resourcequota")
 		}
-	} else if req.Operation == "DELETE" {
+	case "DELETE":
 		if req.Name == "default" {
 			teamName, ok := ns.GetLabels()[teamLabel]
 			if ok {
@@ -62,7 +63,7 @@ func (v *ResourceQuotaValidator) Handle(ctx context.Context, req admission.Reque
 			return admission.Denied("default resourcequota cannot be deleted")
 		}
 		return admission.Allowed("DELETE")
-	} else {
+	default:
 		return admission.Allowed("Allowed")
 	}
 }
