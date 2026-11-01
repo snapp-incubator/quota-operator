@@ -4,9 +4,9 @@ go 1.27.2
 
 require (
 	github.com/openshift/api v0.0.0-20261013084449-5a61bfba6d60
-	k8s.io/api v0.37.1
-	k8s.io/apimachinery v0.37.1
-	k8s.io/client-go v0.37.1
+	k8s.io/api v0.37.2
+	k8s.io/apimachinery v0.37.2
+	k8s.io/client-go v0.37.2
 	sigs.k8s.io/controller-runtime v0.25.2
 )
 
